@@ -21,6 +21,7 @@ exports.getJobs= catchAsyncError( async (req,res,next)=>{
 
 //Create à New Job= = /api/v1/job/new
 exports.newJob=catchAsyncError( async (req,res,next)=>{
+req.body.user=req.user.id;
 const job = await Job.create(req.body);
 res.status(200).json({
     succes:true,

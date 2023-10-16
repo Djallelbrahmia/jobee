@@ -25,7 +25,17 @@ if(err.code==="11000"){
     err =new ErrorHandler(message,400);
 
 }
+//Handling Wrong JWT token error
+if(err.name==='JsonWebTokenError' ){
+    const message='JSON Web token is invalid , try again !'
+    err=new ErrorHandler(message,500);
+}
 
+//Handling Expired JWT token error
+if(err.name==='TokenExpiredError' ){
+    const message='JSON Web token is expired , try again !'
+    err=new ErrorHandler(message,500);
+}
 
 
 res.status(err.statusCode).json({
@@ -55,7 +65,16 @@ if(err.code="11000"){
     err =new ErrorHandler(message,400);
 
 }
-
+//Handling Wrong JWT token error
+if(err.name==='JsonWebTokenError'){
+    const message='JSON Web token is invalid , try again !'
+    err=new ErrorHandler(message,500);
+}
+//Handling Expired JWT token error
+if(err.name==='TokenExpiredError' ){
+    const message='JSON Web token is expired , try again !'
+    err=new ErrorHandler(message,500);
+}
         res.status(err.statusCode).json({
             success:false,
 
