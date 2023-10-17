@@ -32,16 +32,19 @@ exports.updatepassword=catchAsyncError(async(req,res,next)=>{
 exports.updateUser=catchAsyncError(async(req,res,next)=>{
     const newUserData={
         name : req.body.name,
-        email: req.body.email
+        email: req.body.email,
+        role:req.body.role
     }
     const user=await User.findByIdAndUpdate(req.user._id,newUserData,{new:true,runValidators:true,useFindAndModify:false});
 res.status(200).json({
-    success:false,
+    success:true,
     data:user
 });
 })
 //Delete current user => /api/v1/me/delete
 exports.deleteUser=catchAsyncError( async (req,res,next)=>{
     const user=await User.findByIdAndDelete(req.user._id);
-    res.cookie('token','none',{expires:new Date(Date.now())})
+    res.cookie('token','none',{expires:new Date(Date.now()),httpOnly:true}).status(200).json({success:true,
+    message:"your Account has been deleted "
+    })
 })

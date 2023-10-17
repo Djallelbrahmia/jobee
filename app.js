@@ -1,6 +1,7 @@
 const express=require('express');
 const app=express();
 const cookieParser=require('cookie-parser');
+const fileupload=require('express-fileupload');
 
 const dotenv=require('dotenv');
 const errorMiddleware=require('./middlewares/errors');
@@ -19,6 +20,8 @@ connectDatabase();
 // Setup Body paser
 app.use(express.json());
 app.use(cookieParser());
+//handle file upload
+app.use(fileupload());
 // importing all routes
 const jobs =require('./routes/jobs');
 const auth =require('./routes/auth');
