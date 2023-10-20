@@ -2,10 +2,15 @@ const express=require('express');
 const app=express();
 const cookieParser=require('cookie-parser');
 const fileupload=require('express-fileupload');
-
+const rateLimit=require('express-rate-limit');
 const dotenv=require('dotenv');
 const errorMiddleware=require('./middlewares/errors');
 const ErrorHandler=require('./utils/errorHandler');
+const helmet=require('helmet');
+const mongoSanitize=require('express-mongo-sanitize');
+const xssClean=require('xss-clean');
+const hpp=require('hpp');
+const cors=require('cors');
 // SETTING UP Config.env;
 dotenv.config({path:'./config/confing.env'});
 
@@ -17,17 +22,30 @@ process.on('uncaughtException',err=>{
 const connectDatabase=require('./config/database');
 //connecting to database
 connectDatabase();
+//enabling cors
+app.use(cors());
+//Setup security headers
+app.use(helmet());
 // Setup Body paser
 app.use(express.json());
 app.use(cookieParser());
 //handle file upload
 app.use(fileupload());
+//rate limiting
+const limiter=rateLimit({
+    windowMs: 10*60*1000,
+    max:100
+});
 // importing all routes
 const jobs =require('./routes/jobs');
 const auth =require('./routes/auth');
 const user =require('./routes/user');
 
 
+app.use(limiter);
+app.use(mongoSanitize());
+app.use(xssClean())
+app.use(hpp());
 app.use('/api/v1',jobs);
 app.use('/api/v1',auth);
 app.use('/api/v1',user);

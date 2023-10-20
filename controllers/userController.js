@@ -90,6 +90,20 @@ exports.getUsers=catchAsyncError(async (req,res,next)=>{
     })
 
 })
+//Delete User(Admin)
+exports.deleteUserAmin=catchAsyncError(async(req,res,next)=>{
+    const user=await User.findById(req.params.id);
+    if(!user){
+        return next(new ErrorHandler("User not found ",404));
+    }
+   await User.findByIdAndDelete(req.params.id)
+    deleteUserData(user.id,user.role);
+    res.status(200).json({
+        success:true,
+        message:"User is deleted by admin"
+    });
+
+})
 async function deleteUserData(user,role){
     if(role==="employeer"){
         await Job.deleteMany({user:user});

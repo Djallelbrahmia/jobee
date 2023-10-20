@@ -5,6 +5,7 @@ const mongoose=require('mongoose')
 const catchAsyncError=require('../middlewares/catchAsyncErrors');
 const APIFilters=require('../utils/api_filters');
 const path=require('path');
+const fs=require('fs');
 
 //Get all Jobs => /api/v1/jobs
 
@@ -43,6 +44,10 @@ exports.updateJob=catchAsyncError( async(req,res,next)=>{
     if(!job){
         return next(new Error('Job not found'));   
     }
+    //Check if user is owner
+    if(job.user.toString()!==req.user._id.toString()&& req.user.role!=="admin"){
+      return next(new ErrorHandler("You are not allowed to update this job",400))  
+    }
     job=await Job.findByIdAndUpdate(req.params.id,req.body ,{
         new:true,
         runValidators:true 
@@ -67,6 +72,24 @@ exports.deleteJob=catchAsyncError( async (req,res,next)=>{
 
         
     }
+    //Check if user is owner
+    if(job.user.toString()!==req.user.id.toString()&& req.user.role!=="admin"){
+        return next(new ErrorHandler("You are not allowed to Delete this job",400))  
+      }
+    //Deleting files associated with job
+    const delJob= await Job.findById(req.params.id).select("+applicantsApplied");
+    console.log(delJob.applicantsApplied)
+    for(let i=0;i<delJob.applicantsApplied.length;i++){
+        let filepath=`${__dirname}/public/upload/${delJob.applicantsApplied[i].resume}`.replace('/controllers','');
+              fs.unlink(
+                filepath,err=>{
+                    if(err){
+                        return console.log(err);
+                    }
+                }
+            )
+    }
+
     job=await Job.findByIdAndDelete(req.params.id);
     res.status(200).json({
         succes:true,
@@ -75,7 +98,11 @@ exports.deleteJob=catchAsyncError( async (req,res,next)=>{
 })
 //get a single job with id and slug
 exports.getJob=catchAsyncError( async (req,res,next)=>{
-    const job=await Job.find({$and :[{_id:req.params.id},{slug:req.params.slug}]});
+    const job=await Job.find({$and :[{_id:req.params.id},{slug:req.params.slug}]}).populate(
+      {  path:"user",
+    select:"name"
+    }
+    );
     if(!job || job.length===0){
         return res.status(404).json({
 sucess:false,
